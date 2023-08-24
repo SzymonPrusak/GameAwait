@@ -29,10 +29,15 @@ namespace SimEi.Threading.GameAwait
                 }
 
 
-                public bool IsCompleted => CompletionSourcePool<T>.IsCompleted(_token);
+                public bool IsCompleted => CompletionSourcePool<T>.GetSource(_token).HasCompleted;
 
 
-                public void GetResult() => CompletionSourcePool<T>.GetResult(_token);
+                public void GetResult()
+                {
+                    ref var source = ref CompletionSourcePool<T>.GetSource(_token);
+                    source.GetResult();
+                    CompletionSourcePool<T>.Free(_token);
+                }
 
                 public void OnCompleted(Action continuation)
                 {
@@ -41,7 +46,7 @@ namespace SimEi.Threading.GameAwait
 
                 public void UnsafeOnCompleted(Action continuation)
                 {
-                    CompletionSourcePool<T>.UnsafeOnCompleted(_token, continuation);
+                    CompletionSourcePool<T>.GetSource(_token).UnsafeOnCompleted(continuation);
                 }
             }
         }

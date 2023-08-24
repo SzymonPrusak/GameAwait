@@ -14,7 +14,7 @@ namespace SimEi.Threading.GameAwait
             internal ResultAwaitable(AwaitableToken token)
             {
                 _token = token;
-            }
+            } 
 
             public ResultAwaiter GetAwaiter() => new(_token);
 
@@ -29,13 +29,15 @@ namespace SimEi.Threading.GameAwait
                 }
 
 
-                public bool IsCompleted => CompletionSourcePool<T>.IsCompleted(_token);
+                public bool IsCompleted => CompletionSourcePool<T>.GetSource(_token).HasCompleted;
 
 
                 public TRes GetResult()
                 {
-                    var res = CompletionSourcePool<T>.UnvalidatedGetState(_token).Result;
-                    CompletionSourcePool<T>.GetResult(_token);
+                    ref var source = ref CompletionSourcePool<T>.GetSource(_token);
+                    var res = source.State.Result;
+                    source.GetResult();
+                    CompletionSourcePool<T>.Free(_token);
                     return res;
                 }
 
@@ -46,7 +48,7 @@ namespace SimEi.Threading.GameAwait
 
                 public void UnsafeOnCompleted(Action continuation)
                 {
-                    CompletionSourcePool<T>.UnsafeOnCompleted(_token, continuation);
+                    CompletionSourcePool<T>.GetSource(_token).UnsafeOnCompleted(continuation);
                 }
             }
         }

@@ -26,7 +26,7 @@ namespace SimEi.Threading.GameAwait
         {
             internal float LeftTime;
 
-            bool ITrackedCompletionSourceState.IsCompleted => LeftTime <= 0;
+            readonly bool ITrackedCompletionSourceState.IsCompleted => LeftTime <= 0;
         }
 
 

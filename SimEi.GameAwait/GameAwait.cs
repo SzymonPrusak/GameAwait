@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using SimEi.Threading.GameAwait.Internal;
+﻿using SimEi.Threading.GameAwait.Internal;
 
 namespace SimEi.Threading.GameAwait
 {
@@ -8,12 +7,13 @@ namespace SimEi.Threading.GameAwait
     /// </summary>
     public static partial class GameAwait
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Awaitable<T> AllocateAwaitableWithTracking<T>(ref T core)
+        private static Awaitable<T> AllocateAwaitableWithTracking<T>(ref T state)
             where T : struct, ITrackedCompletionSourceState
         {
-            var token = CompletionSourcePool<T>.AllocateAndActivate(ref core);
+            ref var source = ref CompletionSourcePool<T>.Allocate(out var token);
+            source.State = state;
             TaskTracker<T>.Register(token);
+            source.Activate();
             return new(token);
         }
     }

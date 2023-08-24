@@ -14,7 +14,8 @@ namespace SimEi.Threading.GameAwait
         /// </summary>
         public static ResultAwaitable<WhenAllCompletionSourceState<T1, T2>, (T1, T2)> WhenAll<T1, T2>(ValueTask<T1> t1, ValueTask<T2> t2)
         {
-            ref var state = ref CompletionSourcePool<WhenAllCompletionSourceState<T1, T2>>.Allocate(out var token);
+            ref var source = ref CompletionSourcePool<WhenAllCompletionSourceState<T1, T2>>.Allocate(out var token);
+            ref var state = ref source.State;
             if (state.TaskContinuation == null)
             {
                 state.TaskContinuation = GetContinuation<T1, T2>(token);
@@ -25,7 +26,7 @@ namespace SimEi.Threading.GameAwait
             state.Task2 = t2;
             state.Result1 = default!;
             state.Result2 = default!;
-            CompletionSourcePool<WhenAllCompletionSourceState<T1, T2>>.UnvalidatedActivate(token);
+            source.Activate();
 
             t1.GetAwaiter().UnsafeOnCompleted(state.TaskContinuation);
             t2.GetAwaiter().UnsafeOnCompleted(state.TaskContinuation);
@@ -55,7 +56,7 @@ namespace SimEi.Threading.GameAwait
             internal T2 Result2;
 
 
-            (T1, T2) IResultCompletionSourceState<(T1, T2)>.Result => (Result1, Result2);
+            readonly (T1, T2) IResultCompletionSourceState<(T1, T2)>.Result => (Result1, Result2);
 
 
             public void IncrementAndTryComplete()
