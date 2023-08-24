@@ -32,7 +32,7 @@ namespace SimEi.Threading.GameAwait
 
             return new(token);
         }
-        
+
 
         private static Action GetContinuation<T1, T2>(AwaitableToken token)
         {

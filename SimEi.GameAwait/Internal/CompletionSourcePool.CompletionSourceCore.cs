@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using SimEi.Threading.GameAwait.Execution;
-using SimEi.Threading.GameAwait.Internal;
 
 namespace SimEi.Threading.GameAwait
 {

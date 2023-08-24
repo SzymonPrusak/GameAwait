@@ -1,6 +1,6 @@
-﻿using SimEi.Collections;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using SimEi.Collections;
 
 namespace SimEi.Threading.GameAwait.Internal
 {
