@@ -7,7 +7,6 @@ using SimEi.Threading.GameAwait.Internal;
 namespace SimEi.Threading.GameAwait
 {
     internal static partial class CompletionSourcePool<T>
-        where T : ICompletionSourceState, new()
     {
         internal struct CompletionSource
         {
@@ -16,33 +15,27 @@ namespace SimEi.Threading.GameAwait
             public T State;
 
             private ushort _generation;
-            private FastSpinLock _completionLock;
-            private bool _isActive;
+            private SpinLock _completionLock;
             private bool _hasCompleted;
             private SynchronizationContext? _syncContext;
             private Action? _continuation;
 
 
-            public readonly bool IsActive => _isActive;
             public readonly bool HasCompleted => _hasCompleted;
             public readonly ushort Generation => _generation;
 
 
             public void Activate()
             {
-                Debug.Assert(!_isActive);
                 Debug.Assert(!_hasCompleted);
-                _isActive = true;
                 _syncContext = SynchronizationContext.Current;
             }
 
             public void Deactivate()
             {
-                Debug.Assert(_isActive);
                 Debug.Assert(_hasCompleted);
                 _generation++;
                 _hasCompleted = false;
-                _isActive = false;
                 _continuation = null;
             }
 
@@ -52,12 +45,15 @@ namespace SimEi.Threading.GameAwait
                 if (_continuation != null)
                     throw new InvalidOperationException("Multiple continuations are not supported.");
 
-                _completionLock.Enter();
-                _continuation = continuation;
-                bool invoke = _hasCompleted;
+                bool lockTaken = false;
+                _completionLock.Enter(ref lockTaken);
+
+                Volatile.Write(ref _continuation, continuation);
+                bool invokeImmediately = Volatile.Read(ref _hasCompleted);
+
                 _completionLock.Exit();
 
-                if (invoke)
+                if (invokeImmediately)
                     continuation.Invoke();
             }
 
@@ -65,23 +61,26 @@ namespace SimEi.Threading.GameAwait
             {
                 Debug.Assert(!_hasCompleted);
 
-                _completionLock.Enter();
-                _hasCompleted = true;
-                bool invoke = _continuation != null;
+                bool lockTaken = false;
+                _completionLock.Enter(ref lockTaken);
+
+                Volatile.Write(ref _hasCompleted, true);
+                var cont = Volatile.Read(ref _continuation);
+
                 _completionLock.Exit();
 
-                if (!invoke)
+                if (cont == null)
                     return;
 
                 if (_syncContext != null)
                 {
-                    _syncContext.Post(_completeCallback, _continuation);
+                    _syncContext.Post(_completeCallback, cont);
                 }
                 else
                 {
                     try
                     {
-                        _continuation?.Invoke();
+                        cont?.Invoke();
                     }
                     catch (Exception e)
                     {

@@ -7,7 +7,7 @@ namespace SimEi.Threading.GameAwait
     public static partial class GameAwait
     {
         public readonly struct Awaitable<T>
-            where T : struct, ICompletionSourceState
+            where T : struct, ITrackedCompletionSourceState
         {
             private readonly AwaitableToken _token;
 

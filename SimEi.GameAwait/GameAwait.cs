@@ -10,7 +10,7 @@ namespace SimEi.Threading.GameAwait
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Awaitable<T> AllocateAwaitableWithTracking<T>(ref T core)
-            where T : struct, ICompletionSourceState
+            where T : struct, ITrackedCompletionSourceState
         {
             var token = CompletionSourcePool<T>.AllocateAndActivate(ref core);
             TaskTracker<T>.Register(token);

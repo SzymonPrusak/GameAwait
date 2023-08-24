@@ -56,7 +56,6 @@ namespace SimEi.Threading.GameAwait
 
 
             (T1, T2) IResultCompletionSourceState<(T1, T2)>.Result => (Result1, Result2);
-            bool ICompletionSourceState.IsCompleted => CompletedCount == 2;
 
 
             public void IncrementAndTryComplete()

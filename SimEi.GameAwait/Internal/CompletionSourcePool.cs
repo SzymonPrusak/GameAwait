@@ -7,7 +7,7 @@ using SimEi.Threading.GameAwait.Internal;
 namespace SimEi.Threading.GameAwait
 {
     internal static partial class CompletionSourcePool<T>
-        where T : ICompletionSourceState, new()
+        where T : struct
     {
         private const int MaxPoolArrayCount = 5;
         private static readonly int _maxPooledSourceCapacity =

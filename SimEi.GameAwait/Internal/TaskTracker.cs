@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace SimEi.Threading.GameAwait.Internal
 {
     internal class TaskTracker<T>
-        where T : struct, ICompletionSourceState
+        where T : struct, ITrackedCompletionSourceState
     {
         private static readonly PooledLinkedList<AwaitableToken> _activeTasks = new(16);
         private static readonly List<AwaitableToken> _tasksToAdd = new(8);
