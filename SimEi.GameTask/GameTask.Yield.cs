@@ -32,11 +32,11 @@ namespace SimEi.Threading.GameTask
 
         internal static class YieldHandler<Timing>
         {
-            private static readonly AwaitableTracker<YieldState<Timing>>.HandleCallback _yieldHandler = HandleYield;
+            private static readonly TaskTracker<YieldState<Timing>>.HandleCallback _yieldHandler = HandleYield;
 
             public static void Handle()
             {
-                AwaitableTracker<YieldState<Timing>>.HandleActive(_yieldHandler);
+                TaskTracker<YieldState<Timing>>.HandleActive(_yieldHandler);
             }
 
             private static void HandleYield(ref YieldState<Timing> core)

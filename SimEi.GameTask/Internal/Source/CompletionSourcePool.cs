@@ -16,7 +16,7 @@ namespace SimEi.Threading.GameTask.Internal.Source
         private static readonly LogArrayCollection<CompletionSource<T>> _pool = new(MaxPoolArrayCount);
 
 
-        public static ref CompletionSource<T> Allocate(out AwaitableToken token)
+        public static ref CompletionSource<T> Allocate(out TaskToken token)
         {
             lock (_freePoolIndices)
             {
@@ -33,13 +33,13 @@ namespace SimEi.Threading.GameTask.Internal.Source
 
                 ushort index = _freePoolIndices.Pop();
                 ref var source = ref _pool.GetItem(index);
-                token = new AwaitableToken(index, source.Generation);
+                token = new TaskToken(index, source.Generation);
                 return ref source;
             }
         }
 
 
-        public static void Free(AwaitableToken token)
+        public static void Free(TaskToken token)
         {
             if (token.Reference == null)
             {
@@ -50,13 +50,13 @@ namespace SimEi.Threading.GameTask.Internal.Source
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T UnvalidatedGetState(AwaitableToken token)
+        public static ref T UnvalidatedGetState(TaskToken token)
         {
             return ref UnvalidatedGetSource(token).State;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref CompletionSource<T> UnvalidatedGetSource(AwaitableToken token)
+        public static ref CompletionSource<T> UnvalidatedGetSource(TaskToken token)
         {
             if (token.Reference == null)
                 return ref _pool.GetItem(token.Index);
@@ -65,7 +65,7 @@ namespace SimEi.Threading.GameTask.Internal.Source
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref CompletionSource<T> GetSource(AwaitableToken token)
+        public static ref CompletionSource<T> GetSource(TaskToken token)
         {
             ref var source = ref UnvalidatedGetSource(token);
             if (token.Reference == null)

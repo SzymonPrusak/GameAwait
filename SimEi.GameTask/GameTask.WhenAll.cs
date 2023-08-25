@@ -39,7 +39,7 @@ namespace SimEi.Threading.GameTask
         }
 
 
-        private static Action GetContinuation<T1, T2>(AwaitableToken token)
+        private static Action GetContinuation<T1, T2>(TaskToken token)
         {
             return () =>
             {
@@ -52,7 +52,7 @@ namespace SimEi.Threading.GameTask
         internal struct WhenAllCompletionSourceState<T1, T2> : IResultCompletionSourceState<(T1, T2)>
         {
             internal Action TaskContinuation;
-            internal AwaitableToken Token;
+            internal TaskToken Token;
             internal int CompletedCount;
             internal ValueTask<T1> Task1;
             internal ValueTask<T2> Task2;

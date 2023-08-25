@@ -4,11 +4,11 @@ namespace SimEi.Threading.GameTask.Internal.Source.Manager
 {
     internal interface ICompletionSourceManager
     {
-        bool IsCompleted(AwaitableToken token);
+        bool IsCompleted(TaskToken token);
 
-        void Complete(AwaitableToken token, Exception? exception);
+        void Complete(TaskToken token, Exception? exception);
 
-        void OnCompleted(AwaitableToken token, Action continuation);
-        void UnsafeOnCompleted(AwaitableToken token, Action continuation);
+        void OnCompleted(TaskToken token, Action continuation);
+        void UnsafeOnCompleted(TaskToken token, Action continuation);
     }
 }

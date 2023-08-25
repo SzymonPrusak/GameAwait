@@ -2,6 +2,6 @@
 {
     internal interface IVoidCompletionSourceManager : ICompletionSourceManager
     {
-        void GetResult(AwaitableToken token);
+        void GetResult(TaskToken token);
     }
 }

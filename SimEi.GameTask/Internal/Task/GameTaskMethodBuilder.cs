@@ -8,7 +8,7 @@ namespace SimEi.Threading.GameTask.Internal.Task
     public struct GameTaskMethodBuilder
     // TODO: Don't allocate at all for operations completed synchronously.
     {
-        private AwaitableToken _token;
+        private TaskToken _token;
         private IVoidCompletionSourceManager _sourceManager;
 
 
@@ -64,7 +64,7 @@ namespace SimEi.Threading.GameTask.Internal.Task
         }
 
 
-        private static Action GetContinuationAction<TStateMachine>(AwaitableToken token)
+        private static Action GetContinuationAction<TStateMachine>(TaskToken token)
             where TStateMachine : IAsyncStateMachine
         {
             return () =>

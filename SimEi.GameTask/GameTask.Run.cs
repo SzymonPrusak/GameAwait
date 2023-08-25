@@ -48,7 +48,7 @@ namespace SimEi.Threading.GameTask
 
         private class ActionState : IThreadPoolWorkItem
         {
-            public AwaitableToken Token;
+            public TaskToken Token;
             public Action Action = null!;
 
             void IThreadPoolWorkItem.Execute()
@@ -77,7 +77,7 @@ namespace SimEi.Threading.GameTask
 
         private class ResultActionState<TResult> : IThreadPoolWorkItem
         {
-            public AwaitableToken Token;
+            public TaskToken Token;
             public Func<TResult> Action = null!;
 
             void IThreadPoolWorkItem.Execute()

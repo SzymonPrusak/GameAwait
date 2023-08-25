@@ -1,17 +1,17 @@
 ﻿namespace SimEi.Threading.GameTask.Internal
 {
-    internal readonly struct AwaitableToken
+    internal readonly struct TaskToken
     {
         public readonly object? Reference;
         private readonly uint _token;
 
-        public AwaitableToken(ushort index, ushort generation)
+        public TaskToken(ushort index, ushort generation)
         {
             Reference = null;
             _token = index | (uint)(generation << 16);
         }
 
-        public AwaitableToken(object reference)
+        public TaskToken(object reference)
         {
             Reference = reference;
             _token = uint.MaxValue;

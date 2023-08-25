@@ -4,7 +4,7 @@
         : CompletionSourceManagerBase<T>, IVoidCompletionSourceManager
         where T : struct
     {
-        public void GetResult(AwaitableToken token)
+        public void GetResult(TaskToken token)
         {
             ref var source = ref CompletionSourcePool<T>.GetSource(token);
             var ex = source.Exception;

@@ -6,7 +6,7 @@ namespace SimEi.Threading.GameTask.Internal.Source.Manager
         : CompletionSourceManagerBase<T>, IResultCompletionSourceManager<TResult>
         where T : struct, IResultCompletionSourceState<TResult>
     {
-        public TResult GetResult(AwaitableToken token)
+        public TResult GetResult(TaskToken token)
         {
             ref var source = ref CompletionSourcePool<T>.GetSource(token);
             var ex = source.Exception;

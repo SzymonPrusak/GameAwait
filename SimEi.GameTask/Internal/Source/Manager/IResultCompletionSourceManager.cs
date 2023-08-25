@@ -2,6 +2,6 @@
 {
     internal interface IResultCompletionSourceManager<TResult> : ICompletionSourceManager
     {
-        TResult GetResult(AwaitableToken token);
+        TResult GetResult(TaskToken token);
     }
 }
