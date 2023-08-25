@@ -1,6 +1,6 @@
 ﻿namespace SimEi.Threading.GameAwait.Internal.Source.State
 {
-    public interface ITrackedCompletionSourceState
+    internal interface ITrackedCompletionSourceState
     {
         bool IsCompleted { get; }
     }

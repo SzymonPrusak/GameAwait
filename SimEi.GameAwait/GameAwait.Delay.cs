@@ -23,7 +23,7 @@ namespace SimEi.Threading.GameAwait
         }
 
 
-        public struct DelayState<Timing> : ITrackedCompletionSourceState
+        internal struct DelayState<Timing> : ITrackedCompletionSourceState
         {
             internal float LeftTime;
 

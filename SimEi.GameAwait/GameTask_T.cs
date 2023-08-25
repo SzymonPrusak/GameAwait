@@ -28,7 +28,7 @@ namespace SimEi.Threading.GameAwait
 
 
 
-        public struct TaskCompletionSourceState<TStateMachine>
+        internal struct TaskCompletionSourceState<TStateMachine>
             : IResultCompletionSourceState<TResult>
         {
             internal Action ContinuationAction;

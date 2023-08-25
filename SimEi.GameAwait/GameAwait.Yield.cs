@@ -22,7 +22,7 @@ namespace SimEi.Threading.GameAwait
         }
 
 
-        public struct YieldState<Timing> : ITrackedCompletionSourceState
+        internal struct YieldState<Timing> : ITrackedCompletionSourceState
         {
             internal int LeftTicks;
 

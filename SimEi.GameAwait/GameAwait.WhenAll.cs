@@ -49,7 +49,7 @@ namespace SimEi.Threading.GameAwait
         }
 
 
-        public struct WhenAllCompletionSourceState<T1, T2> : IResultCompletionSourceState<(T1, T2)>
+        internal struct WhenAllCompletionSourceState<T1, T2> : IResultCompletionSourceState<(T1, T2)>
         {
             internal Action TaskContinuation;
             internal AwaitableToken Token;
