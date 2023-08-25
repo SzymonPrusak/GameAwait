@@ -19,7 +19,7 @@ namespace SimEi.Threading.GameAwait
                 Token = token,
                 Action = action
             };
-            ThreadPool.QueueUserWorkItem(ActionState.RunCallback, source.State.StateMachine);
+            ThreadPool.UnsafeQueueUserWorkItem(source.State.StateMachine, false);
 
             return new GameTask(
                 token,
@@ -40,7 +40,7 @@ namespace SimEi.Threading.GameAwait
                 Token = token,
                 Action = action
             };
-            ThreadPool.QueueUserWorkItem(ResultActionState<TResult>.RunCallback, source.State.StateMachine);
+            ThreadPool.UnsafeQueueUserWorkItem(source.State.StateMachine, false);
 
             return new GameTask<TResult>(
                 token,
@@ -49,72 +49,69 @@ namespace SimEi.Threading.GameAwait
         }
 
 
+        // TODO: Run(Func<GameTask>)
 
-        private class ActionState
+
+
+        private class ActionState : IThreadPoolWorkItem
         {
-            public static readonly WaitCallback RunCallback = RunCore;
-
             public AwaitableToken Token;
             public Action Action = null!;
 
-            public void SetResult()
+            void IThreadPoolWorkItem.Execute()
+            {
+                try
+                {
+                    Action.Invoke();
+                    SetResult();
+                }
+                catch (Exception ex)
+                {
+                    SetException(ex);
+                }
+            }
+
+            private void SetResult()
             {
                 GameTask<VoidResult>.TaskCompletionSourcePool<ActionState>.Instance
                     .SetResult(Token, default);
             }
 
-            public void SetException(Exception ex)
+            private void SetException(Exception ex)
             {
                 GameTask<VoidResult>.TaskCompletionSourcePool<ActionState>.Instance
                     .SetException(Token, ex);
             }
-
-            private static void RunCore(object? actionStateObj)
-            {
-                var actionState = (ActionState)actionStateObj!;
-                try
-                {
-                    actionState.Action.Invoke();
-                    actionState.SetResult();
-                }
-                catch (Exception ex)
-                {
-                    actionState.SetException(ex);
-                }
-            }
         }
 
-        private class ResultActionState<TResult>
+        private class ResultActionState<TResult> : IThreadPoolWorkItem
         {
-            public static readonly WaitCallback RunCallback = RunCore;
-
             public AwaitableToken Token;
             public Func<TResult> Action = null!;
 
-            public void SetResult(TResult result)
+            void IThreadPoolWorkItem.Execute()
+            {
+                try
+                {
+                    var res = Action.Invoke();
+                    SetResult(res);
+                }
+                catch (Exception ex)
+                {
+                    SetException(ex);
+                }
+            }
+
+            private void SetResult(TResult result)
             {
                 GameTask<TResult>.TaskCompletionSourcePool<ResultActionState<TResult>>.Instance
                     .SetResult(Token, result);
             }
 
-            public void SetException(Exception ex)
+            private void SetException(Exception ex)
             {
                 GameTask<TResult>.TaskCompletionSourcePool<ResultActionState<TResult>>.Instance
                     .SetException(Token, ex);
-            }
-
-            private static void RunCore(object? actionStateObj)
-            {
-                var actionState = (ResultActionState<TResult>)actionStateObj!;
-                try
-                {
-                    var res = actionState.Action.Invoke();
-                    actionState.SetResult(res);
-                }
-                catch (Exception ex)
-                {
-                    actionState.SetException(ex);
-                }
             }
         }
     }
