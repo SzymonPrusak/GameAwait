@@ -35,7 +35,7 @@ namespace SimEi.Threading.GameTask
             internal TStateMachine StateMachine;
             internal TResult Result;
 
-            TResult IResultCompletionSourceState<TResult>.Result => Result;
+            readonly TResult IResultCompletionSourceState<TResult>.Result => Result;
         }
 
 

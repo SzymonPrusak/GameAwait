@@ -6,7 +6,6 @@ using SimEi.Threading.GameTask.Internal.Source.Manager;
 namespace SimEi.Threading.GameTask.Internal.Task
 {
     public struct GameTaskMethodBuilder
-    // TODO: Don't allocate at all for operations completed synchronously.
     {
         private TaskToken _token;
         private IVoidCompletionSourceManager _sourceManager;
@@ -25,6 +24,8 @@ namespace SimEi.Threading.GameTask.Internal.Task
             where TStateMachine : IAsyncStateMachine
         {
             // Execution context not supported.
+            // Cannot skip allocation even if completed synchronously, because CompletionSource
+            //  holds result and exception.
             var sm = GameTask.TaskCompletionSourceManager<TStateMachine>.Instance;
             ref var source = ref sm.AllocateAndActivate(out _token);
             _sourceManager = sm;
