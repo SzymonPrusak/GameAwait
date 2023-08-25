@@ -1,4 +1,6 @@
 ﻿using SimEi.Threading.GameAwait.Internal;
+using SimEi.Threading.GameAwait.Internal.Source.Manager;
+using SimEi.Threading.GameAwait.Internal.Source.State;
 
 namespace SimEi.Threading.GameAwait
 {
@@ -7,13 +9,14 @@ namespace SimEi.Threading.GameAwait
     /// </summary>
     public static partial class GameAwait
     {
-        private static Awaitable<T> AllocateAwaitableWithTracking<T>(ref T state)
+        private static GameTask AllocateTaskWithTracking<T>(ref T state)
             where T : struct, ITrackedCompletionSourceState
         {
-            ref var source = ref CompletionSourcePool<T>.Allocate(out var token);
+            var sm = CompletionSourceManagers.Void<T>.Instance;
+            ref var source = ref sm.AllocateAndActivate(out var token);
             source.State = state;
             AwaitableTracker<T>.Register(token);
-            return new(token);
+            return new(token, sm);
         }
     }
 }

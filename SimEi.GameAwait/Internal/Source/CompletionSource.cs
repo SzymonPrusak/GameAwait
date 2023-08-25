@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using SimEi.Threading.GameAwait.Execution;
 
-namespace SimEi.Threading.GameAwait
+namespace SimEi.Threading.GameAwait.Internal.Source
 {
     internal struct CompletionSource<T>
     {
@@ -15,11 +15,13 @@ namespace SimEi.Threading.GameAwait
         private SpinLock _completionLock;
         private bool _hasCompleted;
         private SynchronizationContext? _syncContext;
-        private Action? _continuation;
+        private volatile Action? _continuation;
+        private Exception? _exception;
 
 
-        public readonly bool HasCompleted => _hasCompleted;
         public readonly ushort Generation => _generation;
+        public readonly bool HasCompleted => _hasCompleted;
+        public readonly Exception? Exception => _exception;
 
 
         public void Activate()
@@ -44,7 +46,7 @@ namespace SimEi.Threading.GameAwait
             bool lockTaken = false;
             _completionLock.Enter(ref lockTaken);
 
-            Volatile.Write(ref _continuation, continuation);
+            _continuation = continuation;
             bool invokeImmediately = Volatile.Read(ref _hasCompleted);
 
             _completionLock.Exit();
@@ -53,15 +55,17 @@ namespace SimEi.Threading.GameAwait
                 continuation.Invoke();
         }
 
-        public void Complete()
+        public void Complete(Exception? ex)
         {
             Debug.Assert(!_hasCompleted);
+
+            _exception = ex;
 
             bool lockTaken = false;
             _completionLock.Enter(ref lockTaken);
 
             Volatile.Write(ref _hasCompleted, true);
-            var cont = Volatile.Read(ref _continuation);
+            var cont = _continuation;
 
             _completionLock.Exit();
 
@@ -91,6 +95,7 @@ namespace SimEi.Threading.GameAwait
             _generation++;
             _hasCompleted = false;
             _continuation = null;
+            _exception = null;
         }
 
 

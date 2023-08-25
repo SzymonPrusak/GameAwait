@@ -1,4 +1,4 @@
-﻿namespace SimEi.Threading.GameAwait.Internal
+﻿namespace SimEi.Threading.GameAwait.Internal.Source.State
 {
     public interface IResultCompletionSourceState<TRes>
     {

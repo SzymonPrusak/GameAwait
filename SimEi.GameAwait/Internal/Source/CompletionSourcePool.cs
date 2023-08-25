@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using SimEi.Threading.GameAwait.Collection;
-using SimEi.Threading.GameAwait.Internal;
 
-namespace SimEi.Threading.GameAwait
+namespace SimEi.Threading.GameAwait.Internal.Source
 {
     internal static partial class CompletionSourcePool<T>
         where T : struct
@@ -24,7 +23,8 @@ namespace SimEi.Threading.GameAwait
                 if (_freePoolIndices.Count == 0)
                 {
                     if (!EnlargePool())
-                    {;
+                    {
+                        ;
                         var box = new CompletionSourceBox();
                         token = new(box);
                         return ref box.Value;
@@ -33,7 +33,6 @@ namespace SimEi.Threading.GameAwait
 
                 ushort index = _freePoolIndices.Pop();
                 ref var source = ref _pool.GetItem(index);
-                source.Activate();
                 token = new AwaitableToken(index, source.Generation);
                 return ref source;
             }

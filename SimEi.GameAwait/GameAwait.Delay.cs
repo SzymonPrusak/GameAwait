@@ -1,5 +1,6 @@
 ﻿using SimEi.Threading.GameAwait.Execution;
 using SimEi.Threading.GameAwait.Internal;
+using SimEi.Threading.GameAwait.Internal.Source.State;
 
 namespace SimEi.Threading.GameAwait
 {
@@ -12,13 +13,13 @@ namespace SimEi.Threading.GameAwait
         ///  execution will be resumed from game loop execution thread.
         /// </para>
         /// </summary>
-        public static Awaitable<DelayState<Timing>> Delay<Timing>(float seconds)
+        public static GameTask Delay<Timing>(float seconds)
         {
-            var source = new DelayState<Timing>
+            var state = new DelayState<Timing>
             {
                 LeftTime = seconds
             };
-            return AllocateAwaitableWithTracking(ref source);
+            return AllocateTaskWithTracking(ref state);
         }
 
 

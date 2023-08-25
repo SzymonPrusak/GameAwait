@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using SimEi.Threading.GameAwait.Internal.Source;
+using SimEi.Threading.GameAwait.Internal.Source.Manager;
 
 namespace SimEi.Threading.GameAwait.Internal.Task
 {
     public struct GameTaskMethodBuilder
     // TODO: Don't allocate at all for operations completed synchronously.
     {
-        private GameTaskMethodBuilder<VoidResult> _core;
+        private AwaitableToken _token;
+        private IVoidCompletionSourceManager _sourceManager;
 
 
-        public readonly GameTask Task => new(_core.Token, _core.CompletionSourcePool);
+        public readonly GameTask Task => new(_token, _sourceManager);
 
 
         public static GameTaskMethodBuilder Create()
@@ -20,24 +23,56 @@ namespace SimEi.Threading.GameAwait.Internal.Task
 
         public void Start<TStateMachine>(ref TStateMachine stateMachine)
             where TStateMachine : IAsyncStateMachine
-            => _core.Start(ref stateMachine);
+        {
+            // Execution context not supported.
+            var sm = GameTask.TaskCompletionSourceManager<TStateMachine>.Instance;
+            ref var source = ref sm.AllocateAndActivate(out _token);
+            _sourceManager = sm;
+
+            ref var state = ref source.State;
+            state.ContinuationAction ??= GetContinuationAction<TStateMachine>(_token);
+            state.StateMachine = stateMachine;
+            state.StateMachine.MoveNext();
+        }
 
         public readonly void SetStateMachine(IAsyncStateMachine stateMachine)
-            => _core.SetStateMachine(stateMachine);
+        {
+            throw new NotSupportedException("Boxed state machine is not supported.");
+        }
 
 
-        public readonly void SetResult() => _core.SetResult(default);
-        public readonly void SetException(Exception ex) => _core.SetException(ex);
+        public readonly void SetResult() => _sourceManager.Complete(_token, null);
+        public readonly void SetException(Exception ex) => _sourceManager.Complete(_token, ex);
 
 
-        public readonly void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        public readonly void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine _)
             where TAwaiter : INotifyCompletion
             where TStateMachine : IAsyncStateMachine
-            => _core.AwaitOnCompleted(ref awaiter, ref stateMachine);
+        {
+            ref var source = ref CompletionSourcePool<GameTask.TaskCompletionSourceState<TStateMachine>>
+                .UnvalidatedGetState(_token);
+            awaiter.OnCompleted(source.ContinuationAction);
+        }
 
-        public readonly void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+        public readonly void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine _)
             where TAwaiter : ICriticalNotifyCompletion
             where TStateMachine : IAsyncStateMachine
-            => _core.AwaitUnsafeOnCompleted(ref awaiter, ref stateMachine);
+        {
+            ref var source = ref CompletionSourcePool<GameTask.TaskCompletionSourceState<TStateMachine>>
+                .UnvalidatedGetState(_token);
+            awaiter.UnsafeOnCompleted(source.ContinuationAction);
+        }
+
+
+        private static Action GetContinuationAction<TStateMachine>(AwaitableToken token)
+            where TStateMachine : IAsyncStateMachine
+        {
+            return () =>
+            {
+                ref var state = ref CompletionSourcePool<GameTask.TaskCompletionSourceState<TStateMachine>>
+                    .UnvalidatedGetState(token);
+                state.StateMachine.MoveNext();
+            };
+        }
     }
 }

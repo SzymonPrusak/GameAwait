@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using SimEi.Threading.GameAwait.Internal;
+using SimEi.Threading.GameAwait.Internal.Source.Manager;
 using SimEi.Threading.GameAwait.Internal.Task;
 
 namespace SimEi.Threading.GameAwait
@@ -9,12 +10,12 @@ namespace SimEi.Threading.GameAwait
     public readonly partial struct GameTask
     {
         private readonly AwaitableToken _token;
-        private readonly GameTask<VoidResult>.ITaskCompletionSourcePool _completionSourcePool;
+        private readonly IVoidCompletionSourceManager _sourceManager;
 
-        internal GameTask(AwaitableToken token, GameTask<VoidResult>.ITaskCompletionSourcePool completionSourcePool)
+        internal GameTask(AwaitableToken token, IVoidCompletionSourceManager sourceManager)
         {
             _token = token;
-            _completionSourcePool = completionSourcePool;
+            _sourceManager = sourceManager;
         }
 
 
@@ -24,28 +25,17 @@ namespace SimEi.Threading.GameAwait
         }
 
 
-        public readonly struct TaskAwaiter : ICriticalNotifyCompletion
+        public struct TaskCompletionSourceState<TStateMachine>
         {
-            private readonly GameTask _task;
+            internal Action ContinuationAction;
+            internal TStateMachine StateMachine;
+        }
 
-            internal TaskAwaiter(GameTask task)
-            {
-                _task = task;
-            }
 
-            public bool IsCompleted => _task._completionSourcePool.IsCompleted(_task._token);
-
-            public void GetResult() => _task._completionSourcePool.GetResult(_task._token);
-
-            public void OnCompleted(Action continuation)
-            {
-                _task._completionSourcePool.OnCompleted(_task._token, continuation);
-            }
-
-            public void UnsafeOnCompleted(Action continuation)
-            {
-                _task._completionSourcePool.UnsafeOnCompleted(_task._token, continuation);
-            }
+        internal static class TaskCompletionSourceManager<TStateMachine>
+        {
+            public static VoidCompletionSourceManager<TaskCompletionSourceState<TStateMachine>> Instance =>
+                CompletionSourceManagers.Void<TaskCompletionSourceState<TStateMachine>>.Instance;
         }
     }
 }

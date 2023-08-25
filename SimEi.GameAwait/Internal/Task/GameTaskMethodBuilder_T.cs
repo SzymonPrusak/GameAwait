@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using SimEi.Threading.GameAwait.Internal.Source;
 
 namespace SimEi.Threading.GameAwait.Internal.Task
 {
@@ -7,14 +8,10 @@ namespace SimEi.Threading.GameAwait.Internal.Task
     // TODO: Don't allocate at all for operations completed synchronously.
     {
         private AwaitableToken _token;
-        private GameTask<TResult>.ITaskCompletionSourcePool _completionSourcePool;
+        private GameTask<TResult>.ITaskResultCompletionSourceManager _sourceManager;
 
 
-        internal readonly AwaitableToken Token => _token;
-        internal readonly GameTask<TResult>.ITaskCompletionSourcePool CompletionSourcePool => _completionSourcePool;
-
-
-        public readonly GameTask<TResult> Task => new(_token, _completionSourcePool);
+        public readonly GameTask<TResult> Task => new(_token, _sourceManager);
 
 
         public static GameTaskMethodBuilder<TResult> Create()
@@ -27,9 +24,10 @@ namespace SimEi.Threading.GameAwait.Internal.Task
             where TStateMachine : IAsyncStateMachine
         {
             // Execution context not supported.
-            _completionSourcePool = GameTask<TResult>.TaskCompletionSourcePool<TStateMachine>.Instance;
-            ref var source = ref CompletionSourcePool<GameTask<TResult>.CompletionSource<TStateMachine>>
-                .Allocate(out _token);
+            var sm = GameTask<TResult>.TaskResultCompletionSourceManager<TStateMachine>.Instance;
+            ref var source = ref sm.AllocateAndActivate(out _token);
+            _sourceManager = sm;
+
             ref var state = ref source.State;
             state.ContinuationAction ??= GetContinuationAction<TStateMachine>(_token);
             state.StateMachine = stateMachine;
@@ -42,15 +40,20 @@ namespace SimEi.Threading.GameAwait.Internal.Task
         }
 
 
-        public readonly void SetResult(TResult result) => _completionSourcePool.SetResult(_token, result);
-        public readonly void SetException(Exception ex) => _completionSourcePool.SetException(_token, ex);
+        public readonly void SetResult(TResult result)
+        {
+            _sourceManager.SetResult(_token, result);
+            _sourceManager.Complete(_token, null);
+        }
+
+        public readonly void SetException(Exception ex) => _sourceManager.Complete(_token, ex);
 
 
         public readonly void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine _)
             where TAwaiter : INotifyCompletion
             where TStateMachine : IAsyncStateMachine
         {
-            ref var source = ref CompletionSourcePool<GameTask<TResult>.CompletionSource<TStateMachine>>
+            ref var source = ref CompletionSourcePool<GameTask<TResult>.TaskCompletionSourceState<TStateMachine>>
                 .UnvalidatedGetState(_token);
             awaiter.OnCompleted(source.ContinuationAction);
         }
@@ -59,7 +62,7 @@ namespace SimEi.Threading.GameAwait.Internal.Task
             where TAwaiter : ICriticalNotifyCompletion
             where TStateMachine : IAsyncStateMachine
         {
-            ref var source = ref CompletionSourcePool<GameTask<TResult>.CompletionSource<TStateMachine>>
+            ref var source = ref CompletionSourcePool<GameTask<TResult>.TaskCompletionSourceState<TStateMachine>>
                 .UnvalidatedGetState(_token);
             awaiter.UnsafeOnCompleted(source.ContinuationAction);
         }
@@ -70,7 +73,7 @@ namespace SimEi.Threading.GameAwait.Internal.Task
         {
             return () =>
             {
-                ref var state = ref CompletionSourcePool<GameTask<TResult>.CompletionSource<TStateMachine>>
+                ref var state = ref CompletionSourcePool<GameTask<TResult>.TaskCompletionSourceState<TStateMachine>>
                     .UnvalidatedGetState(token);
                 state.StateMachine.MoveNext();
             };

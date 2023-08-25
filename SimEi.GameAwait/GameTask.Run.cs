@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using SimEi.Threading.GameAwait.Internal;
-using SimEi.Threading.GameAwait.Internal.Task;
 
 namespace SimEi.Threading.GameAwait
 {
@@ -12,19 +11,16 @@ namespace SimEi.Threading.GameAwait
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            ref var source = ref CompletionSourcePool<GameTask<VoidResult>.CompletionSource<ActionState>>
-                .Allocate(out var token);
+            var sm = GameTask.TaskCompletionSourceManager<ActionState>.Instance;
+            ref var source = ref sm.AllocateAndActivate(out var token);
             source.State.StateMachine ??= new ActionState()
             {
                 Token = token,
                 Action = action
             };
-            ThreadPool.UnsafeQueueUserWorkItem(source.State.StateMachine, false);
+            ThreadPool.UnsafeQueueUserWorkItem(source.State.StateMachine, true);
 
-            return new GameTask(
-                token,
-                GameTask<VoidResult>.TaskCompletionSourcePool<ActionState>.Instance
-            );
+            return new GameTask(token, sm);
         }
 
 
@@ -33,19 +29,16 @@ namespace SimEi.Threading.GameAwait
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            ref var source = ref CompletionSourcePool<GameTask<TResult>.CompletionSource<ResultActionState<TResult>>>
-                .Allocate(out var token);
+            var sm = GameTask<TResult>.TaskResultCompletionSourceManager<ResultActionState<TResult>>.Instance;
+            ref var source = ref sm.AllocateAndActivate(out var token);
             source.State.StateMachine ??= new ResultActionState<TResult>()
             {
                 Token = token,
                 Action = action
             };
-            ThreadPool.UnsafeQueueUserWorkItem(source.State.StateMachine, false);
+            ThreadPool.UnsafeQueueUserWorkItem(source.State.StateMachine, true);
 
-            return new GameTask<TResult>(
-                token,
-                GameTask<TResult>.TaskCompletionSourcePool<ResultActionState<TResult>>.Instance
-            );
+            return new GameTask<TResult>(token, sm);
         }
 
 
@@ -73,14 +66,12 @@ namespace SimEi.Threading.GameAwait
 
             private void SetResult()
             {
-                GameTask<VoidResult>.TaskCompletionSourcePool<ActionState>.Instance
-                    .SetResult(Token, default);
+                GameTask.TaskCompletionSourceManager<ActionState>.Instance.Complete(Token, null);
             }
 
             private void SetException(Exception ex)
             {
-                GameTask<VoidResult>.TaskCompletionSourcePool<ActionState>.Instance
-                    .SetException(Token, ex);
+                GameTask.TaskCompletionSourceManager<ActionState>.Instance.Complete(Token, ex);
             }
         }
 
@@ -104,14 +95,15 @@ namespace SimEi.Threading.GameAwait
 
             private void SetResult(TResult result)
             {
-                GameTask<TResult>.TaskCompletionSourcePool<ResultActionState<TResult>>.Instance
-                    .SetResult(Token, result);
+                var manager = GameTask<TResult>.TaskResultCompletionSourceManager<ResultActionState<TResult>>.Instance;
+                manager.SetResult(Token, result);
+                manager.Complete(Token, null);
             }
 
             private void SetException(Exception ex)
             {
-                GameTask<TResult>.TaskCompletionSourcePool<ResultActionState<TResult>>.Instance
-                    .SetException(Token, ex);
+                GameTask<TResult>.TaskResultCompletionSourceManager<ResultActionState<TResult>>.Instance
+                    .Complete(Token, ex);
             }
         }
     }

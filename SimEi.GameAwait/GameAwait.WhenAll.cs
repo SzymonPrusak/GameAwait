@@ -2,6 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using SimEi.Threading.GameAwait.Internal;
+using SimEi.Threading.GameAwait.Internal.Source;
+using SimEi.Threading.GameAwait.Internal.Source.Manager;
+using SimEi.Threading.GameAwait.Internal.Source.State;
 
 namespace SimEi.Threading.GameAwait
 {
@@ -12,9 +15,11 @@ namespace SimEi.Threading.GameAwait
         /// <summary>
         /// Delays execution until all specified tasks are completed.
         /// </summary>
-        public static ResultAwaitable<WhenAllCompletionSourceState<T1, T2>, (T1, T2)> WhenAll<T1, T2>(ValueTask<T1> t1, ValueTask<T2> t2)
+        public static GameTask<(T1, T2)> WhenAll<T1, T2>(ValueTask<T1> t1, ValueTask<T2> t2)
         {
-            ref var source = ref CompletionSourcePool<WhenAllCompletionSourceState<T1, T2>>.Allocate(out var token);
+            var sm = CompletionSourceManagers.Result<WhenAllCompletionSourceState<T1, T2>, (T1, T2)>.Instance;
+            ref var source = ref sm.AllocateAndActivate(out var token);
+
             ref var state = ref source.State;
             if (state.TaskContinuation == null)
             {
@@ -30,7 +35,7 @@ namespace SimEi.Threading.GameAwait
             t1.GetAwaiter().UnsafeOnCompleted(state.TaskContinuation);
             t2.GetAwaiter().UnsafeOnCompleted(state.TaskContinuation);
 
-            return new(token);
+            return new(token, sm);
         }
 
 
@@ -62,9 +67,10 @@ namespace SimEi.Threading.GameAwait
             {
                 if (Interlocked.Increment(ref CompletedCount) == 2)
                 {
+                    // TODO: handle exceptions
                     Result1 = Task1.GetAwaiter().GetResult();
                     Result2 = Task2.GetAwaiter().GetResult();
-                    CompletionSourcePool<WhenAllCompletionSourceState<T1, T2>>.UnvalidatedGetSource(Token).Complete();
+                    CompletionSourcePool<WhenAllCompletionSourceState<T1, T2>>.UnvalidatedGetSource(Token).Complete(null);
                 }
             }
         }

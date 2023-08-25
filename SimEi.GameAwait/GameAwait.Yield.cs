@@ -1,5 +1,5 @@
-﻿
-using SimEi.Threading.GameAwait.Internal;
+﻿using SimEi.Threading.GameAwait.Internal;
+using SimEi.Threading.GameAwait.Internal.Source.State;
 
 namespace SimEi.Threading.GameAwait
 {
@@ -12,13 +12,13 @@ namespace SimEi.Threading.GameAwait
         ///  execution will be resumed from game loop execution thread.
         /// </para>
         /// </summary>
-        public static Awaitable<YieldState<Timing>> Yield<Timing>(int tickCount = 1)
+        public static GameTask Yield<Timing>(int tickCount = 1)
         {
             var state = new YieldState<Timing>
             {
                 LeftTicks = tickCount
             };
-            return AllocateAwaitableWithTracking(ref state);
+            return AllocateTaskWithTracking(ref state);
         }
 
 

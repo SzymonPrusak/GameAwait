@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using SimEi.Collections;
+using SimEi.Threading.GameAwait.Internal.Source;
+using SimEi.Threading.GameAwait.Internal.Source.State;
 
 namespace SimEi.Threading.GameAwait.Internal
 {
@@ -58,7 +60,7 @@ namespace SimEi.Threading.GameAwait.Internal
 
             if (!source.State.IsCompleted)
                 return false;
-            source.Complete();
+            source.Complete(null);
             return true;
         }
     }
