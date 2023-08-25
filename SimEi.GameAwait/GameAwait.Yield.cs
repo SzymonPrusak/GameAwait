@@ -3,7 +3,7 @@ using SimEi.Threading.GameAwait.Internal;
 
 namespace SimEi.Threading.GameAwait
 {
-    public static partial class GameAwait
+    partial class GameAwait
     {
         /// <summary>
         /// Delays execution to next <paramref name="tickCount"/> ticks of specified <typeparamref name="Timing"/>.
@@ -26,17 +26,17 @@ namespace SimEi.Threading.GameAwait
         {
             internal int LeftTicks;
 
-            bool ITrackedCompletionSourceState.IsCompleted => LeftTicks == 0;
+            readonly bool ITrackedCompletionSourceState.IsCompleted => LeftTicks == 0;
         }
 
 
         internal static class YieldHandler<Timing>
         {
-            private static readonly TaskTracker<YieldState<Timing>>.HandleCallback _yieldHandler = HandleYield;
+            private static readonly AwaitableTracker<YieldState<Timing>>.HandleCallback _yieldHandler = HandleYield;
 
             public static void Handle()
             {
-                TaskTracker<YieldState<Timing>>.HandleActive(_yieldHandler);
+                AwaitableTracker<YieldState<Timing>>.HandleActive(_yieldHandler);
             }
 
             private static void HandleYield(ref YieldState<Timing> core)

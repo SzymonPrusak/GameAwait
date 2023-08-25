@@ -3,7 +3,7 @@ using SimEi.Threading.GameAwait.Internal;
 
 namespace SimEi.Threading.GameAwait
 {
-    public static partial class GameAwait
+    partial class GameAwait
     {
         /// <summary>
         /// Delays execution until specified time passed on game loop execution thread for <typeparamref name="Timing"/>.
@@ -32,11 +32,11 @@ namespace SimEi.Threading.GameAwait
 
         internal static class DelayHandler<Timing>
         {
-            private static readonly TaskTracker<DelayState<Timing>>.HandleCallback _delayHandler = HandleDelay;
+            private static readonly AwaitableTracker<DelayState<Timing>>.HandleCallback _delayHandler = HandleDelay;
 
             public static void Handle()
             {
-                TaskTracker<DelayState<Timing>>.HandleActive(_delayHandler);
+                AwaitableTracker<DelayState<Timing>>.HandleActive(_delayHandler);
             }
 
             private static void HandleDelay(ref DelayState<Timing> state)

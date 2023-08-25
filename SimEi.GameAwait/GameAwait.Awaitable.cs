@@ -4,10 +4,10 @@ using SimEi.Threading.GameAwait.Internal;
 
 namespace SimEi.Threading.GameAwait
 {
-    public static partial class GameAwait
+    partial class GameAwait
     {
         public readonly struct Awaitable<T>
-            where T : struct, ITrackedCompletionSourceState
+            where T : struct
         {
             private readonly AwaitableToken _token;
 

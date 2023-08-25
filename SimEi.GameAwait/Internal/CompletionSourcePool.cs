@@ -9,7 +9,7 @@ namespace SimEi.Threading.GameAwait
     internal static partial class CompletionSourcePool<T>
         where T : struct
     {
-        private const int MaxPoolArrayCount = 5;
+        private const int MaxPoolArrayCount = 3;
         private static readonly int _maxPooledSourceCapacity =
             LogArrayCollection<T>.GetCapacityForArrayCount(MaxPoolArrayCount);
 
@@ -24,7 +24,7 @@ namespace SimEi.Threading.GameAwait
                 if (_freePoolIndices.Count == 0)
                 {
                     if (!EnlargePool())
-                    {
+                    {;
                         var box = new CompletionSourceBox();
                         token = new(box);
                         return ref box.Value;
@@ -33,6 +33,7 @@ namespace SimEi.Threading.GameAwait
 
                 ushort index = _freePoolIndices.Pop();
                 ref var source = ref _pool.GetItem(index);
+                source.Activate();
                 token = new AwaitableToken(index, source.Generation);
                 return ref source;
             }

@@ -12,8 +12,7 @@ namespace SimEi.Threading.GameAwait
         {
             ref var source = ref CompletionSourcePool<T>.Allocate(out var token);
             source.State = state;
-            TaskTracker<T>.Register(token);
-            source.Activate();
+            AwaitableTracker<T>.Register(token);
             return new(token);
         }
     }

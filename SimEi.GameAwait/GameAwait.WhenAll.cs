@@ -5,7 +5,7 @@ using SimEi.Threading.GameAwait.Internal;
 
 namespace SimEi.Threading.GameAwait
 {
-    public static partial class GameAwait
+    partial class GameAwait
     {
         // TODO: .tt generator for multiple different counts.
 
@@ -26,7 +26,6 @@ namespace SimEi.Threading.GameAwait
             state.Task2 = t2;
             state.Result1 = default!;
             state.Result2 = default!;
-            source.Activate();
 
             t1.GetAwaiter().UnsafeOnCompleted(state.TaskContinuation);
             t2.GetAwaiter().UnsafeOnCompleted(state.TaskContinuation);

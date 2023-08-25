@@ -4,7 +4,7 @@ using SimEi.Threading.GameAwait.Internal;
 
 namespace SimEi.Threading.GameAwait
 {
-    public static partial class GameAwait
+    partial class GameAwait
     {
         public readonly struct ResultAwaitable<T, TRes>
             where T : struct, IResultCompletionSourceState<TRes>
