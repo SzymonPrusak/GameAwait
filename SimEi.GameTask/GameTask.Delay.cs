@@ -33,11 +33,11 @@ namespace SimEi.Threading.GameTask
 
         internal static class DelayHandler<Timing>
         {
-            private static readonly AwaitableTracker<DelayState<Timing>>.HandleCallback _delayHandler = HandleDelay;
+            private static readonly TaskTracker<DelayState<Timing>>.HandleCallback _delayHandler = HandleDelay;
 
             public static void Handle()
             {
-                AwaitableTracker<DelayState<Timing>>.HandleActive(_delayHandler);
+                TaskTracker<DelayState<Timing>>.HandleActive(_delayHandler);
             }
 
             private static void HandleDelay(ref DelayState<Timing> state)

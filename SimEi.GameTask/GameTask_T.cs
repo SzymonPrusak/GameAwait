@@ -11,10 +11,10 @@ namespace SimEi.Threading.GameTask
     [AsyncMethodBuilder(typeof(GameTaskMethodBuilder<>))]
     public readonly partial struct GameTask<TResult>
     {
-        private readonly AwaitableToken _token;
+        private readonly TaskToken _token;
         private readonly IResultCompletionSourceManager<TResult> _sourceManager;
 
-        internal GameTask(AwaitableToken token, IResultCompletionSourceManager<TResult> sourceManager)
+        internal GameTask(TaskToken token, IResultCompletionSourceManager<TResult> sourceManager)
         {
             _token = token;
             _sourceManager = sourceManager;
@@ -42,7 +42,7 @@ namespace SimEi.Threading.GameTask
         internal interface ITaskResultCompletionSourceManager
             : IResultCompletionSourceManager<TResult>
         {
-            void SetResult(AwaitableToken token, TResult result);
+            void SetResult(TaskToken token, TResult result);
         }
 
         internal class TaskResultCompletionSourceManager<TStateMachine>
@@ -50,7 +50,7 @@ namespace SimEi.Threading.GameTask
         {
             public static readonly TaskResultCompletionSourceManager<TStateMachine> Instance = new();
 
-            public void SetResult(AwaitableToken token, TResult result)
+            public void SetResult(TaskToken token, TResult result)
             {
                 ref var source = ref CompletionSourcePool<TaskCompletionSourceState<TStateMachine>>.UnvalidatedGetSource(token);
                 source.State.Result = result;

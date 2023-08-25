@@ -10,10 +10,10 @@ namespace SimEi.Threading.GameTask
     [AsyncMethodBuilder(typeof(GameTaskMethodBuilder))]
     public readonly partial struct GameTask
     {
-        private readonly AwaitableToken _token;
+        private readonly TaskToken _token;
         private readonly IVoidCompletionSourceManager _sourceManager;
 
-        internal GameTask(AwaitableToken token, IVoidCompletionSourceManager sourceManager)
+        internal GameTask(TaskToken token, IVoidCompletionSourceManager sourceManager)
         {
             _token = token;
             _sourceManager = sourceManager;
@@ -32,7 +32,7 @@ namespace SimEi.Threading.GameTask
             var sm = CompletionSourceManagers.Void<T>.Instance;
             ref var source = ref sm.AllocateAndActivate(out var token);
             source.State = state;
-            AwaitableTracker<T>.Register(token);
+            TaskTracker<T>.Register(token);
             return new(token, sm);
         }
 

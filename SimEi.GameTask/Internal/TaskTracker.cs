@@ -6,17 +6,17 @@ using SimEi.Threading.GameTask.Internal.Source.State;
 
 namespace SimEi.Threading.GameTask.Internal
 {
-    internal class AwaitableTracker<T>
+    internal class TaskTracker<T>
         where T : struct, ITrackedCompletionSourceState
     {
-        private static readonly PooledLinkedList<AwaitableToken> _activeTasks = new(16);
-        private static readonly List<AwaitableToken> _tasksToAdd = new(8);
+        private static readonly PooledLinkedList<TaskToken> _activeTasks = new(16);
+        private static readonly List<TaskToken> _tasksToAdd = new(8);
 
 
         public delegate void HandleCallback(ref T state);
 
 
-        public static void Register(AwaitableToken token)
+        public static void Register(TaskToken token)
         {
             lock (_tasksToAdd)
                 _tasksToAdd.Add(token);
@@ -53,7 +53,7 @@ namespace SimEi.Threading.GameTask.Internal
             }
         }
 
-        private static bool Handle(HandleCallback callback, AwaitableToken token)
+        private static bool Handle(HandleCallback callback, TaskToken token)
         {
             ref var source = ref CompletionSourcePool<T>.UnvalidatedGetSource(token);
             callback.Invoke(ref source.State);
